@@ -908,10 +908,10 @@ std::vector<double> PlotUtils::GetArrayFromTextFile(std::string DataFile) {
 }
 
 // Get a 2D array from a text file
-std::vector<std::vector<double>>
+std::vector<std::vector<double> >
 PlotUtils::Get2DArrayFromTextFile(std::string DataFile) {
   std::string line;
-  std::vector<std::vector<double>> DataArray;
+  std::vector<std::vector<double> > DataArray;
   std::ifstream data(DataFile.c_str(), std::ifstream::in);
   while (std::getline(data >> std::ws, line, '\n')) {
     std::vector<double> entries = GeneralUtils::ParseToDbl(line, " ");
@@ -931,14 +931,14 @@ TH2D *PlotUtils::GetTH2DFromTextFile(std::string data, std::string binx,
   std::vector<double> ybins = GetArrayFromTextFile(biny);
 
   // Read in the data
-  std::vector<std::vector<double>> Data = Get2DArrayFromTextFile(data);
+  std::vector<std::vector<double> > Data = Get2DArrayFromTextFile(data);
 
   // And finally fill the data
   TH2D *DataPlot = new TH2D("TempHist", "TempHist", xbins.size() - 1, &xbins[0],
                             ybins.size() - 1, &ybins[0]);
   int nBinsX = 0;
   int nBinsY = 0;
-  for (std::vector<std::vector<double>>::iterator it = Data.begin();
+  for (std::vector<std::vector<double> >::iterator it = Data.begin();
        it != Data.end(); ++it) {
     nBinsX++;
     // Get the inner vector
@@ -1175,7 +1175,8 @@ TH1D *PlotUtils::GetProjectionX(TH2D *hist, TH2I *mask) {
   TH2D *maskedhist = StatUtils::ApplyHistogramMasking(hist, mask);
 
   // This includes the underflow/overflow
-  TH1D *hist_X = maskedhist->ProjectionX();
+  TH1D* hist_X = maskedhist->ProjectionX("_px", 1, maskedhist->GetXaxis()->GetNbins());
+  hist_X->SetTitle(Form("%s x no under/overflow", hist_X->GetTitle()));
 
   delete maskedhist;
   return hist_X;
@@ -1188,7 +1189,8 @@ TH1D *PlotUtils::GetProjectionY(TH2D *hist, TH2I *mask) {
   TH2D *maskedhist = StatUtils::ApplyHistogramMasking(hist, mask);
 
   // This includes the underflow/overflow
-  TH1D *hist_Y = maskedhist->ProjectionY();
+  TH1D* hist_Y = maskedhist->ProjectionY("_py", 1, maskedhist->GetYaxis()->GetNbins());
+  hist_Y->SetTitle(Form("%s y no under/overflow", hist_Y->GetTitle()));
 
   delete maskedhist;
   return hist_Y;

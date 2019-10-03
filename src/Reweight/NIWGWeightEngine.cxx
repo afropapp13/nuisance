@@ -12,18 +12,16 @@ NIWGWeightEngine::NIWGWeightEngine(std::string name) {
   fNIWGRW = new niwg::rew::NIWGReWeight();
 
   // Get List of Veto Calcs (For Debugging)
-  std::string rw_engine_list =
-      FitPar::Config().GetParS("FitWeight_fNIWGRW_veto");
+  std::string rw_engine_list = FitPar::Config().GetParS("FitWeight_fNIWGRW_veto");
   bool niwg_2012a = rw_engine_list.find("niwg_2012a") == std::string::npos;
   bool niwg_2014a = rw_engine_list.find("niwg_2014a") == std::string::npos;
   bool niwg_pimult = rw_engine_list.find("niwg_pimult") == std::string::npos;
   bool niwg_mec = rw_engine_list.find("niwg_mec") == std::string::npos;
   bool niwg_rpa = rw_engine_list.find("niwg_rpa") == std::string::npos;
   bool niwg_eff_rpa = rw_engine_list.find("niwg_eff_rpa") == std::string::npos;
-  bool niwg_proton =
-      rw_engine_list.find("niwg_protonFSIbug") == std::string::npos;
-  bool niwg_hadron =
-      rw_engine_list.find("niwg_HadronMultSwitch") == std::string::npos;
+  bool niwg_proton = rw_engine_list.find("niwg_protonFSIbug") == std::string::npos;
+  bool niwg_hadron = rw_engine_list.find("niwg_HadronMultSwitch") == std::string::npos;
+  bool niwg_qelowq2 = rw_engine_list.find("niwg_LowQEQ2") == std::string::npos;
 
   // Add the RW Calcs
   if (niwg_2012a)
@@ -38,13 +36,16 @@ NIWGWeightEngine::NIWGWeightEngine(std::string name) {
     fNIWGRW->AdoptWghtCalc("niwg_rpa", new niwg::rew::NIWGReWeightRPA);
   if (niwg_eff_rpa)
     fNIWGRW->AdoptWghtCalc("niwg_eff_rpa",
-                           new niwg::rew::NIWGReWeightEffectiveRPA);
+        new niwg::rew::NIWGReWeightEffectiveRPA);
   if (niwg_proton)
     fNIWGRW->AdoptWghtCalc("niwg_protonFSIbug",
-                           new niwg::rew::NIWGReWeightProtonFSIbug);
+        new niwg::rew::NIWGReWeightProtonFSIbug);
   if (niwg_hadron)
     fNIWGRW->AdoptWghtCalc("niwg_HadronMultSwitch",
-                           new niwg::rew::NIWGReWeightHadronMultSwitch);
+        new niwg::rew::NIWGReWeightHadronMultSwitch);
+  // Add in Luke's low Q2 suppression
+  if (niwg_qelowq2)
+    fNIWGRW->AdoptWghtCalc("niwg_QELowQ2", new niwg::rew::NIWGReWeightEffectiveQELowQ2Suppression);
 
   fNIWGRW->Reconfigure();
 
@@ -115,7 +116,7 @@ void NIWGWeightEngine::SetDialValue(int nuisenum, double val) {
   for (uint i = 0; i < indices.size(); i++) {
     fValues[indices[i]] = val;
     std::cout << "Setting NIWG Dial Value " << i << " " << indices[i] << " "
-              << fNIWGSysts[indices[i]] << std::endl;
+      << fNIWGSysts[indices[i]] << std::endl;
     fNIWGRW->Systematics().Set(fNIWGSysts[indices[i]], val);
   }
 #endif
@@ -165,7 +166,7 @@ double NIWGWeightEngine::CalcWeight(BaseFitEvt *evt) {
   StopTalking();
 
   niwg::rew::NIWGEvent *niwg_event =
-      NIWGWeightEngine::GetNIWGEventLocal(evt->fNeutVect);
+    NIWGWeightEngine::GetNIWGEventLocal(evt->fNeutVect);
   rw_weight *= fNIWGRW->CalcWeight(*niwg_event);
   delete niwg_event;
 
@@ -202,8 +203,8 @@ niwg::rew::NIWGEvent *NIWGWeightEngine::GetNIWGEventLocal(NeutVect *nvect) {
     fDummyPartStack.pdg = nvect->PartInfo(ip)->fPID;
     fDummyPartStack.chase = nvect->PartInfo(ip)->fIsAlive;
     fDummyPartStack.parent =
-        nvect->ParentIdx(ip) -
-        1; // WARNING: this needs to be tested with a NeutRoot file
+      nvect->ParentIdx(ip) -
+      1; // WARNING: this needs to be tested with a NeutRoot file
 
     fDummyNIWGEvent->part_stack.push_back(fDummyPartStack);
   }
